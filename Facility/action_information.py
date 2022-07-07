@@ -8,24 +8,36 @@ class ActionInformation:
     def __init__(self):
         self.Order = maxsize  # Default to the lowest order
         self.TaskName = ''
+        self.Label = None
         self.Config = {}
         self.Requirements: List[str] = []
+        self.Children: List[ActionInformation] = []
 
     @classmethod
-    def FromMapping(cls, data: Mapping):
+    def FromMapping(cls, data: Mapping, isFirstLevel: bool):
         res = ActionInformation()
         try:
-            res.Order = data['Order']
+            res.Order = data.get('Order', None)
+            if res.Order is None and isFirstLevel:
+                raise KeyError('Order (on a first level task)')
             res.TaskName = data['Task']
-            res.Config = data['Config']
+            res.Config = data.get('Config', {})
             res.Requirements = data.get('Requirements', [])
-            return res
+            res.Label = data.get('Label', None)
+            children = data.get('Children', [])
+            for child in children:
+                res.Children.append(ActionInformation.FromMapping(child, isFirstLevel=False))
+            return res, None
         except KeyError as e:
-            Log.E(f'Facility: Key not found on action information: {e} (Data="{data}")')
-            return None
+            message = f'Facility: Key not found on action information: {e} (Data="{data}")'
+            Log.E(message)
+            return None, message
 
     def __str__(self):
-        return f'ActionInformation [Order: {self.Order}; Task: {self.TaskName}; Config: {self.Config}]'
+        label = '' if self.Label is None else f'({self.Label})'
+        children = ', '.join(str(c) for c in self.Children)
+        children = '' if len(children) == 0 else f'; Children: ({children})'
+        return f'{self.TaskName}{label} [Order: {self.Order}; Config: {self.Config}{children}]'
 
     @staticmethod
     def DummyAction(config: Dict):

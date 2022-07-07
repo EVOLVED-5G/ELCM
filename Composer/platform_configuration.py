@@ -7,6 +7,8 @@ class TaskDefinition:
     def __init__(self):
         self.Task: ClassVar = None
         self.Params: Dict = {}
+        self.Label: str = ''
+        self.Children: List[TaskDefinition] = []
 
 
 class PlatformConfiguration:
