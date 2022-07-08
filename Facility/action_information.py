@@ -17,19 +17,33 @@ class ActionInformation:
     def FromMapping(cls, data: Mapping, isFirstLevel: bool):
         res = ActionInformation()
         try:
+            res.TaskName = data.get('Task', None)
+            if res.TaskName is None:
+                raise KeyError('Missing "Task" field')
+
             res.Order = data.get('Order', None)
             if res.Order is None and isFirstLevel:
-                raise KeyError('Order (on a first level task)')
-            res.TaskName = data['Task']
-            res.Config = data.get('Config', {})
+                raise KeyError('Missing "Order" on a first level task')
+            elif res.Order is not None and not isFirstLevel:
+                raise KeyError('"Order" cannot be defined on a child task (uses list order)')
+
             res.Requirements = data.get('Requirements', [])
+            if len(res.Requirements) > 0 and not isFirstLevel:
+                raise KeyError('"Requirements" cannot be defined on a child task')
+
+            res.Config = data.get('Config', {})
             res.Label = data.get('Label', None)
             children = data.get('Children', [])
-            for child in children:
-                res.Children.append(ActionInformation.FromMapping(child, isFirstLevel=False))
+            for index, child in enumerate(children, start=1):
+                action, maybeError = ActionInformation.FromMapping(child, isFirstLevel=False)
+                if action is not None:
+                    action.Order = index
+                    res.Children.append(action)
+                else:
+                    return None, f'Facility: Incorrect definition of child task: {maybeError} (Data="{child}")'
             return res, None
         except KeyError as e:
-            message = f'Facility: Key not found on action information: {e} (Data="{data}")'
+            message = f'Facility: Incorrect definition of task: {e} (Data="{data}")'
             Log.E(message)
             return None, message
 
