@@ -10,6 +10,12 @@ class TaskDefinition:
         self.Label: str = ''
         self.Children: List[TaskDefinition] = []
 
+    def GetTaskInstance(self, logMethod, parent, params):
+        taskInstance = self.Task(logMethod, parent, params)
+        taskInstance.Label = self.Label
+        taskInstance.Children = self.Children
+        return taskInstance
+
 
 class PlatformConfiguration:
     def __init__(self):

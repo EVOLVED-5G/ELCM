@@ -1,2 +1,2 @@
 from .composer import Composer
-from .platform_configuration import PlatformConfiguration
+from .platform_configuration import PlatformConfiguration, TaskDefinition

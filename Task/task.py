@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional, Union, Tuple, Any
+from typing import Callable, Dict, Optional, Union, Tuple, Any, List
 from Helper import Log, Level
 from Settings import Config
 
@@ -8,6 +8,7 @@ class Task:
                  logMethod: Optional[Callable] = None,
                  conditionMethod: Optional[Callable] = None):
         from Executor import ExecutorBase, Verdict
+        from Composer import TaskDefinition
 
         self.name = name
         self.params = {} if params is None else params
@@ -18,21 +19,24 @@ class Task:
         self.Vault = {}
         self.LogMessages = []
         self.Verdict = Verdict.NotSet
+        self.Label = None
+        self.Children: List[TaskDefinition] = []
 
     def Start(self) -> Dict:
+        identifier = self.name if self.Label is None else f'{self.name}({self.Label})'
         if self.condition is None or self.condition():
-            self.Log(Level.INFO, f"[Starting Task '{self.name}']")
+            self.Log(Level.INFO, f"[Starting Task '{identifier}']")
             self.Log(Level.DEBUG, f'Params: {self.params}')
             if self.SanitizeParams():
                 self.Run()
-                self.Log(Level.INFO, f"[Task '{self.name}' finished (verdict: '{self.Verdict.name}')]")
+                self.Log(Level.INFO, f"[Task '{identifier}' finished (verdict: '{self.Verdict.name}')]")
             else:
-                message = f"[Task '{self.name}' cancelled due to incorrect parameters ({self.params})]"
+                message = f"[Task '{identifier}' cancelled due to incorrect parameters ({self.params})]"
                 self.Log(Level.ERROR, message)
                 raise RuntimeError(message)
             self.Log(Level.DEBUG, f'Params: {self.params}')
         else:
-            self.Log(Level.INFO, f"[Task '{self.name}' not started (condition false)]")
+            self.Log(Level.INFO, f"[Task '{identifier}' not started (condition false)]")
         return self.params
 
     def Publish(self, key: str, value: object):
@@ -43,6 +47,7 @@ class Task:
         raise NotImplementedError
 
     def Log(self, level: Union[Level, str], msg: str):
+        msg = f"{self.Label}.{msg}"
         self.logMethod(level, msg)
         self.LogMessages.append(msg)
 

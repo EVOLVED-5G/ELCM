@@ -25,8 +25,11 @@ class Executor(ExecutorBase):
                 self.Status = Status.Cancelled
                 self.params['Verdict'] = Verdict.Cancel
                 break
-            taskInstance: Task = task.Task(self.Log, self, Expander.ExpandDict(task.Params, self))
-            self.AddMessage(f'Starting task {taskInstance.name}')
+            taskInstance: Task = task.GetTaskInstance(self.Log, self, Expander.ExpandDict(task.Params, self))
+            if taskInstance.Label is None:
+                taskInstance.Label = f"Task_{i}"
+            identifier = f'{taskInstance.name}({taskInstance.Label})'
+            self.AddMessage(f'Starting task {identifier}')
 
             try:
                 taskInstance.Start()
@@ -39,7 +42,7 @@ class Executor(ExecutorBase):
             self.params['PreviousTaskLog'] = taskInstance.LogMessages
             self.params['Verdict'] = Verdict.Max(self.Verdict, taskInstance.Verdict)
 
-            self.AddMessage(f"Task '{taskInstance.name}' finished with verdict '{taskInstance.Verdict.name}'",
+            self.AddMessage(f"Task '{identifier}' finished with verdict '{taskInstance.Verdict.name}'",
                             int(floor(10 + ((i / len(tasks)) * 90))))
         else:
             self.Status = Status.Finished
