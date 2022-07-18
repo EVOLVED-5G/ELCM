@@ -1,4 +1,5 @@
 import logging
+import time
 from logging.handlers import RotatingFileHandler
 from .log_level import Level
 from flask import Flask
@@ -8,7 +9,9 @@ from Settings import Config
 import traceback
 from typing import Union, Optional, List, Dict, Tuple
 from dataclasses import dataclass
+from datetime import datetime
 import sys
+import re
 
 
 class ColoredFormatter(logging.Formatter):
@@ -35,44 +38,92 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, record)
 
 
+entryParser = re.compile(r'(\d+-\d+-\d+ \d+:\d+:\d+,\d+) - (CRITICAL|ERROR|WARNING|INFO|DEBUG) - ((.*\|\|)*)(.*)')
+
+
 @dataclass
-class LogInfo:
-    Log: List[Tuple[str, str]] = None
-    Count: Dict[str, int] = None
+class LogEntry:
+    RawString: str
+    Level: None | str
+    Timestamp: None | int = None
+    DateTime: None | str = None
+    Label: None | str = None
+    Message: None | str = None
 
-    def __init__(self):
-        self.Log = []
-        self.Count = {"Debug": 0, "Info": 0, "Warning": 0, "Error": 0, "Critical": 0}
-
-    @staticmethod
-    def FromLog(log: List[str]):
-        def _inferLevel(line: str) -> str:
+    def __init__(self, msg: str):
+        def _inferLevel(line: str) -> str:  # To ensure compatibility with older logs
             if ' - CRITICAL - ' in line: return 'Critical'
             if ' - ERROR - ' in line: return 'Error'
             if ' - WARNING - ' in line: return 'Warning'
             if ' - INFO - ' in line: return 'Info'
             return 'Debug'
 
+        self.RawString = msg
+        msg = msg.strip()
+        match = entryParser.match(msg)
+        if match:
+            self.DateTime = match.group(1)
+            self.Level = match.group(2).capitalize()
+            self.Label = match.group(3)
+            self.Message = match.group(5)
+            self.Timestamp = int(datetime.strptime(self.DateTime, '%Y-%m-%d %H:%M:%S,%f').timestamp()*1000)
+        else:
+            self.Message = msg
+            self.Level = _inferLevel(msg)
+
+
+
+    def Serialize(self):
+        return {
+            'RawString': self.RawString,
+            'Level': self.Level,
+            'Timestamp': self.Timestamp,
+            'DateTime': self.DateTime,
+            'Label': self.Label,
+            'Message': self.Message
+        }
+
+
+@dataclass
+class LogInfo:
+    Log: List[Tuple[str, str]]
+    Count: Dict[str, int]
+    Entries: List[LogEntry]
+
+    def __init__(self):
+        self.Log = []
+        self.Entries = []
+        self.Count = {"Debug": 0, "Info": 0, "Warning": 0, "Error": 0, "Critical": 0}
+
+    @staticmethod
+    def FromLog(log: List[str]):
         res = LogInfo()
         for line in log:
-            level = _inferLevel(line)
+            entry = LogEntry(line)
+            level = entry.Level
             res.Count[level] += 1
             res.Log.append((level, line))
+            res.Entries.append(entry)
         return res
 
     @staticmethod
     def FromTuple(log: List[Tuple[Level, str]]):
+        # These messages are simpler (no timestamps or labels) and come from validation logs.
         res = LogInfo()
         for level, message in log:
+            entry = LogEntry(message)
             level = level.name.capitalize()
+            entry.Level = level
             res.Count[level] += 1
             res.Log.append((level, f'{message}\n'))
+            res.Entries.append(entry)
         return res
 
     def Serialize(self) -> Dict:
         return {
             "Count": self.Count,
-            "Log": self.Log
+            "Log": self.Log,
+            "Entries": [entry.Serialize() for entry in self.Entries]
         }
 
 
@@ -93,6 +144,9 @@ class Log:
         folder = config.Logging.Folder
 
         if not exists(folder): makedirs(folder)
+
+        # Save messages with UTC times
+        logging.Formatter.converter = time.gmtime
 
         # Accept all messages on Flask logger, but display only up to the selected level
         app.logger.setLevel(logging.DEBUG)
@@ -194,8 +248,10 @@ class Log:
     def RetrieveLog(cls, file: str = None, tail: Optional[int] = None) -> List[str]:
         res = []
         file = join(Config().Logging.Folder, 'Scheduler.log') if file is None else file
-        with open(file, 'r', encoding='utf-8') as log:
-            for l in log: res.append(l)
+        with open(file, 'rb') as log:
+            for line in log:
+                res.append(line.decode(encoding='utf-8', errors='replace'))
+
         if tail is not None and tail < len(res):
             start = len(res) - tail
             return res[start:len(res)]

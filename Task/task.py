@@ -47,8 +47,7 @@ class Task:
         raise NotImplementedError
 
     def Log(self, level: Union[Level, str], msg: str):
-        msg = f"{self.Label}.{msg}"
-        self.logMethod(level, msg)
+        self.logMethod(level, f"{self.Label}||{msg}")
         self.LogMessages.append(msg)
 
     def SanitizeParams(self):
