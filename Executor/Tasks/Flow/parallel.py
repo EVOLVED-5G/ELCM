@@ -30,9 +30,10 @@ class Parallel(Task):
             if child.Label is None:
                 child.Label = f"Br{index}"
 
+            flowState = {'Branch': index}
             info = ChildInfo(child)
             info.TaskInstance = child.GetTaskInstance(
-                self.Log, self.parent, Expander.ExpandDict(child.Params, self.parent))
+                self.Log, self.parent, Expander.ExpandDict(child.Params, self.parent, flowState))
             info.Thread = Thread(target=self.runChild, args=(info.TaskInstance,))
             children.append(info)
 
@@ -41,6 +42,7 @@ class Parallel(Task):
 
         for index, info in enumerate(children, start=1):
             info.Thread.join()
+            self.parent.params.update(info.TaskInstance.Vault)  # Propagate any published values
             self.Log(Level.DEBUG, f"Branch {index} ({info.TaskDefinition.Label}) joined")
 
         self.Log(Level.INFO, f"Finished execution of all child tasks")
@@ -50,4 +52,4 @@ class Parallel(Task):
             taskInstance.Start()
         except Exception as e:
             taskInstance.params['Verdict'] = Verdict.Error
-            self.Log(Level.Error, str(e))
+            self.Log(Level.ERROR, str(e))

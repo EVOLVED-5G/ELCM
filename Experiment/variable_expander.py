@@ -8,28 +8,31 @@ from json import dumps
 
 class Expander:
     @classmethod
-    def ExpandDict(cls, dict: Dict, context: Union[ExecutorBase, ExperimentRun]):
+    def ExpandDict(cls, dict: Dict, context: Union[ExecutorBase, ExperimentRun], flowState: Dict = None):
         config = Config()
-        return cls.expandParams(dict, context, config)
+        if flowState is None:
+            flowState = {}
+        return cls.expandParams(dict, context, config, flowState)
 
     @classmethod
-    def expandParams(cls, item: object, context: Union[ExecutorBase, ExperimentRun], config: Config) -> object:
+    def expandParams(cls, item: object, context: Union[ExecutorBase, ExperimentRun],
+                     config: Config, flowState: Dict) -> object:
         if isinstance(item, dict):
             res = {}
             for key, value in item.items():
-                res[key] = cls.expandParams(value, context, config)
+                res[key] = cls.expandParams(value, context, config, flowState)
         elif isinstance(item, list) or isinstance(item, tuple):
             res = []
             for value in item:
-                res.append(cls.expandParams(value, context, config))
+                res.append(cls.expandParams(value, context, config, flowState))
         elif isinstance(item, str):
-            res = cls.expand(item, context, config)
+            res = cls.expand(item, context, config, flowState)
         else:
             res = item
         return res
 
     @classmethod
-    def expand(cls, item: str, context: Union[ExecutorBase, ExperimentRun], config: Config) -> str:
+    def expand(cls, item: str, context: Union[ExecutorBase, ExperimentRun], config: Config, flowState: Dict) -> str:
         duration = context.Descriptor.Duration or 0
         replacements = {
             # Dynamic values
@@ -45,6 +48,9 @@ class Expander:
             "@{TapFolder}": config.Tap.Folder,
             "@{TapResults}": config.Tap.Results,
         }
+
+        for key, value in flowState.items():  # [Iter0|Iter1|Branch] on the current level, if applies
+            replacements[f'@{{{key}}}'] = value
 
         expanded = item
         for key, value in replacements.items():
