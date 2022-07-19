@@ -23,7 +23,10 @@ class Task:
         self.Children: List[TaskDefinition] = []
 
     def Start(self) -> Dict:
-        identifier = self.name if self.Label is None else f'{self.name}({self.Label})'
+        if self.Label is None:
+            self.Label = self.name
+
+        identifier = self.name if self.Label is None else f'{self.Label}({self.name})'
         if self.condition is None or self.condition():
             self.Log(Level.INFO, f"[Starting Task '{identifier}']")
             self.Log(Level.DEBUG, f'Params: {self.params}')

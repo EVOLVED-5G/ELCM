@@ -1,3 +1,2 @@
 from .parallel import Parallel
-from .repeat import Repeat
-from .sequence import Sequence
+from .sequences import Sequence, Repeat

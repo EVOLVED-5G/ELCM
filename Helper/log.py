@@ -71,8 +71,6 @@ class LogEntry:
             self.Message = msg
             self.Level = _inferLevel(msg)
 
-
-
     def Serialize(self):
         return {
             'RawString': self.RawString,
