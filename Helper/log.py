@@ -38,7 +38,7 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter.format(self, record)
 
 
-entryParser = re.compile(r'(\d+-\d+-\d+ \d+:\d+:\d+,\d+) - (CRITICAL|ERROR|WARNING|INFO|DEBUG) - ((.*\|\|)*)(.*)')
+entryParser = re.compile(r'(\d+-\d+-\d+) (\d+:\d+:\d+,\d+) - (CRITICAL|ERROR|WARNING|INFO|DEBUG) - ((.*\|\|)*)(.*)')
 
 
 @dataclass
@@ -46,7 +46,8 @@ class LogEntry:
     RawString: str
     Level: None | str
     Timestamp: None | int = None
-    DateTime: None | str = None
+    Date: None | str = None
+    Time: None | str = None
     Label: None | str = None
     Message: None | str = None
 
@@ -62,11 +63,12 @@ class LogEntry:
         msg = msg.strip()
         match = entryParser.match(msg)
         if match:
-            self.DateTime = match.group(1)
-            self.Level = match.group(2).capitalize()
-            self.Label = match.group(3)
-            self.Message = match.group(5)
-            self.Timestamp = int(datetime.strptime(self.DateTime, '%Y-%m-%d %H:%M:%S,%f').timestamp()*1000)
+            self.Date = match.group(1)
+            self.Time = match.group(2)
+            self.Level = match.group(3).capitalize()
+            self.Label = match.group(4).replace('||', '.').removesuffix('.')
+            self.Message = match.group(6)
+            self.Timestamp = int(datetime.strptime(f'{self.Date} {self.Time}', '%Y-%m-%d %H:%M:%S,%f').timestamp()*1000)
         else:
             self.Message = msg
             self.Level = _inferLevel(msg)
@@ -76,7 +78,8 @@ class LogEntry:
             'RawString': self.RawString,
             'Level': self.Level,
             'Timestamp': self.Timestamp,
-            'DateTime': self.DateTime,
+            'Date': self.Date,
+            'Time': self.Time,
             'Label': self.Label,
             'Message': self.Message
         }

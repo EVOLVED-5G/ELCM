@@ -42,12 +42,12 @@
 
     <div class="accordion" id="logAccordion">
         {{ executorTimes('Pre-Run', execution.PreRunner) }}
-        {{ logView.logView(execution.PreRunner.RetrieveLogInfo(), 'Pre-Run') }}
+        {{ logView.logView(execution.PreRunner.RetrieveLogInfo(), 'Pre-Run', False) }}
         <hr>
         {{ executorTimes('Run', execution.Executor) }}
-        {{ logView.logView(execution.Executor.RetrieveLogInfo(), 'Run') }}
+        {{ logView.logView(execution.Executor.RetrieveLogInfo(), 'Run', False) }}
         <hr>
         {{ executorTimes('Post-Run', execution.PostRunner) }}
-        {{ logView.logView(execution.PostRunner.RetrieveLogInfo(), 'Post-Run') }}
+        {{ logView.logView(execution.PostRunner.RetrieveLogInfo(), 'Post-Run', False) }}
     </div>
 {% endblock %}

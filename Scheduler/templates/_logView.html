@@ -1,4 +1,5 @@
 {% set LogLevels = ['Debug', 'Info', 'Warning', 'Error', 'Critical'] %}
+{% set ToggleableColumns = ['level', 'date', 'time', 'label'] %}
 
 {% macro logScripts() %}
     <script type="text/javascript">
@@ -21,12 +22,18 @@
                     $(".log{{ level }}").toggleClass('hidden')
                 });
             {% endfor %}
+            {% for column in ToggleableColumns %}
+                $(document).on('click', "#{{ column }}Button", function(){
+                    $(".{{ column }}Column").toggleClass('hidden')
+                });
+            {% endfor %}
         });
     </script>
 {% endmacro %}
 
-{% macro logAccordionCard(accordion, card, logInfo) %}
-    {% set LogLevels = ['Debug', 'Info', 'Warning', 'Error', 'Critical'] %}
+{% set LogLevels = ['Debug', 'Info', 'Warning', 'Error', 'Critical'] %}
+
+{% macro logAccordionCard(accordion, card, logInfo, asPlainText) %}
     <div class="card">
     <div class="card-header" id="{{ card }}Header">
         <button class="btn btn-block" type="button" data-toggle="collapse"
@@ -42,31 +49,62 @@
     </div>
     <div id="{{ card }}Log" class="collapse" aria-labelledby="{{ card }}Header" data-parent="#{{ accordion }}">
       <div class="card-body">
-        {{ logView(logInfo, card+'Log') }}
+        {{ logView(logInfo, card+'Log', asPlainText) }}
       </div>
     </div>
   </div>
 {% endmacro %}
 
-{% macro logView(logInfo, logId) %}
-    <div class="container" style="margin: 5px">
-        {% for level in LogLevels %}
-            {% set count = logInfo.Count[level] %}
-            <button id="button{{ level }}" data-toggle="button"
-                    class="btn btn-primary {% if level != 'Debug' %}active{% endif %}"
-                    aria-pressed= {{ "true" if level != 'Debug' else "false"}}>
-                {{ level }}
-                {% if count != 0 %}
-                    <span class="label color{{ level }}" style="background: navy">{{ count }}</span>
-                {% endif %}
-            </button>
-        {% endfor %}
-        <button id="{{ logId }}CopyButton" class="btn btn-default"
+{% macro logView(logInfo, logId, asPlainText) %}
+    <div class="btn-toolbar" style="margin: 5px">
+        <div class="btn-group">
+            {% for level in LogLevels %}
+                {% set count = logInfo.Count[level] %}
+                <button type="button" id="button{{ level }}" data-toggle="button"
+                        class="btn btn-primary {% if level != 'Debug' %}active{% endif %}"
+                        aria-pressed= {{ "true" if level != 'Debug' else "false"}}>
+                    {{ level }}
+                    {% if count != 0 %}
+                        <span class="label color{{ level }}" style="background: navy">{{ count }}</span>
+                    {% endif %}
+                </button>
+            {% endfor %}
+        </div>
+
+        {% if not asPlainText %}
+            <div class="btn-group">
+                <button type="button" id="levelButton" class="btn btn-default" data-toggle="button" aria-pressed="false">🎚️</button>
+                <button type="button" id="dateButton" class="btn btn-default" data-toggle="button" aria-pressed="false">📅</button>
+                <button type="button" id="timeButton" class="btn btn-default active" data-toggle="button" aria-pressed="true">⌚</button>
+                <button type="button" id="labelButton" class="btn btn-default" data-toggle="button" aria-pressed="true">🏷️</button>
+            </div>
+        {% endif %}
+
+        <button type="button" id="{{ logId }}CopyButton" class="btn"
                 onclick="copyToClipboard('#{{ logId }}Content', '#{{ logId }}CopyButton')" >📋</button>
     </div>
-    {% for level, line in logInfo.Log %}
-        <p class="logLine log{{ level }} color{{ level }} {% if level=='Debug' %}hidden{% endif %}">{{ line }}</p>
-    {% endfor %}
+
+    {% if asPlainText %}
+        {% for level, line in logInfo.Log %}
+            <p class="logLine log{{ level }} color{{ level }} {% if level=='Debug' %}hidden{% endif %}">{{ line }}</p>
+        {% endfor %}
+    {% else %}
+        {% for entry in logInfo.Entries %}
+            {% set level = entry.Level %}
+            {% set entryClasses = 'logLine log' + level + ' color' + level + (' hidden' if level=='Debug' else '')%}
+            {% set shortLabel = entry.Label.split('.')[-1] %}
+            {% set shortLabel = shortLabel if shortLabel | count < 10 else shortLabel[0:9]+'…' %}
+            <div class="row {{ entryClasses }}">
+                <div class="col-sm-1 levelColumn hidden">{{ level }}</div>
+                <div class="col-sm-1 dateColumn hidden">{{ entry.Date }}</div>
+                <div class="col-sm-1 timeColumn" style="font-size: smaller;">{{ entry.Time }}</div>
+                <div class="col-sm-1 labelColumn text-nowrap" style="text-align: right;"> {{ shortLabel }}</div>
+                <div class="col-sm-4 labelColumn hidden" style="text-align: right;"> {{ entry.Label}}</div>
+                <div class="col-">{{ entry.Message }}</div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="hidden" id="{{ logId }}Content">
     {# Keep indent and - signs to avoid extra whitespaces on copied text #}
 {%- for _, line in logInfo.Log -%}
