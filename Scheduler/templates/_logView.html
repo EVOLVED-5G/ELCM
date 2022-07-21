@@ -92,14 +92,14 @@
         {% for entry in logInfo.Entries %}
             {% set level = entry.Level %}
             {% set entryClasses = 'logLine log' + level + ' color' + level + (' hidden' if level=='Debug' else '')%}
-            {% set shortLabel = entry.Label.split('.')[-1] %}
+            {% set shortLabel = entry.Label.split('.')[-1] if entry.Label is not none else '' %}
             {% set shortLabel = shortLabel if shortLabel | count < 10 else shortLabel[0:9]+'…' %}
             <div class="row {{ entryClasses }}">
                 <div class="col-sm-1 levelColumn hidden">{{ level }}</div>
                 <div class="col-sm-1 dateColumn hidden">{{ entry.Date }}</div>
                 <div class="col-sm-1 timeColumn" style="font-size: smaller;">{{ entry.Time }}</div>
                 <div class="col-sm-1 labelColumn text-nowrap" style="text-align: right;"> {{ shortLabel }}</div>
-                <div class="col-sm-4 labelColumn hidden" style="text-align: right;"> {{ entry.Label}}</div>
+                <div class="col-sm-4 labelColumn hidden" style="text-align: right;"> {{ entry.Label }}</div>
                 <div class="col-">{{ entry.Message }}</div>
             </div>
         {% endfor %}
