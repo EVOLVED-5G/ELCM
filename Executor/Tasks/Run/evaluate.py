@@ -1,6 +1,5 @@
 from Task import Task
 from Helper import Level
-import re
 
 
 class Evaluate(Task):
