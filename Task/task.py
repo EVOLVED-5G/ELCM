@@ -23,6 +23,8 @@ class Task:
         self.Children: List[TaskDefinition] = []
 
     def Start(self) -> Dict:
+        from Executor import Verdict
+
         if self.Label is None:
             self.Label = self.name
 
@@ -34,8 +36,9 @@ class Task:
                 self.Run()
                 self.Log(Level.INFO, f"[Task '{identifier}' finished (verdict: '{self.Verdict.name}')]")
             else:
-                message = f"[Task '{identifier}' cancelled due to incorrect parameters ({self.params})]"
+                message = f"[Task '{identifier}' aborted due to incorrect parameters ({self.params})]"
                 self.Log(Level.ERROR, message)
+                self.Verdict = Verdict.Error
                 raise RuntimeError(message)
             self.Log(Level.DEBUG, f'Params: {self.params}')
         else:

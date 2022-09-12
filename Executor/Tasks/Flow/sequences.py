@@ -29,9 +29,10 @@ class SequenceBase(Task):
             taskInstance.Start()
             self.parent.params.update(taskInstance.Vault)  # Propagate any published values
         except Exception as e:
-            taskInstance.params['Verdict'] = Verdict.Error
+            taskInstance.Verdict = Verdict.Error
             self.Log(Level.Error, str(e))
 
+        self.Verdict = Verdict.Max(self.Verdict, taskInstance.Verdict)
 
 class Sequence(SequenceBase):
     def __init__(self, logMethod, parent, params):

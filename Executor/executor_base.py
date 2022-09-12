@@ -30,6 +30,7 @@ class ExecutorBase(Child):
         self.Status = Status.Init
         self.Messages = []
         self.PerCent = 0
+        self.Verdict = Verdict.NotSet
         if not self.params.get('Deserialized', False):
             self.AddMessage("Init")
 
@@ -53,9 +54,6 @@ class ExecutorBase(Child):
     def DeployedSliceId(self) -> Optional[str]:
         return self.params.get('DeployedSliceId', None)
 
-    @property
-    def Verdict(self) -> Verdict:
-        return self.params.get('Verdict', Verdict.NotSet)
 
     @property
     def PreviousTaskLog(self) -> List[str]:
@@ -165,6 +163,6 @@ class ExecutorBase(Child):
         res.Started = Serialize.StringToDate(data['Started'])
         res.Finished = Serialize.StringToDate(data['Finished'])
         res.Status = Status[data['Status']]
-        res.Params['Verdict'] = Verdict[data.get('Verdict', 'NotSet')]
+        res.Verdict = Verdict[data.get('Verdict', 'NotSet')]
 
         return res

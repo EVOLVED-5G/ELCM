@@ -44,6 +44,7 @@ class Parallel(Task):
             info.Thread.join()
             self.parent.params.update(info.TaskInstance.Vault)  # Propagate any published values
             self.Log(Level.DEBUG, f"Branch {index} ({info.TaskDefinition.Label}) joined")
+            self.Verdict = Verdict.Max(self.Verdict, info.TaskInstance.Verdict)
 
         self.Log(Level.INFO, f"Finished execution of all child tasks")
 
@@ -51,5 +52,5 @@ class Parallel(Task):
         try:
             taskInstance.Start()
         except Exception as e:
-            taskInstance.params['Verdict'] = Verdict.Error
+            taskInstance.Verdict = Verdict.Error
             self.Log(Level.ERROR, str(e))

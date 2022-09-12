@@ -6,11 +6,32 @@
     {{ logView.logScripts() }}
 {% endblock %}
 
+{%  set colorMapping = {
+        "NotSet": "dimgray",
+        "Pass": "green",
+        "Inconclusive": "lightgray",
+        "Fail": "orange",
+        "Cancel": "orangered",
+        "Error": "red" }
+%}
+
+{% macro verdict(name) %}
+    <span class="label" style="background: {{ colorMapping[name] }}">{{ name }}</span>
+{% endmacro %}
+
 {% macro executorTimes(name, executor) %}
+    {% set isRun = (name=='Run') %}
     <div class="container">
-        <div class="row"><div class="col-">
-            <h3>{{ name }}</h3>
-        </div></div>
+        <div class="row">
+            <div class="col-sm-6">
+                <h2>{{ name }}</h2>
+            </div>
+            {% if isRun %}
+                <div class="col-sm-6">
+                    <h3 style="text-align: right">Verdict: {{ verdict(executor.Verdict.name) }}</h3>
+                </div>
+            {% endif %}
+        </div>
         <div class="row">
             <div class="col-sm-6">
                 {% if executor.Started is not none %}
