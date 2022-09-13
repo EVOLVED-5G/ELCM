@@ -34,6 +34,7 @@ class SequenceBase(Task):
 
         self.Verdict = Verdict.Max(self.Verdict, taskInstance.Verdict)
 
+
 class Sequence(SequenceBase):
     def __init__(self, logMethod, parent, params):
         super().__init__("Sequence", logMethod, parent, params)
@@ -72,7 +73,8 @@ class While(SequenceBase):
 
         regex = re.compile(pattern) if pattern is not None else None
         collection = self.parent.Params
-        condition = f"'{key}' {('does not ' if negate else '')} {('exist' if pattern is None else f'match {pattern}')}"
+        matchPattern = f"match regex '{pattern}'"
+        condition = f"'{key}' {('does not ' if negate else '')} {('exist' if pattern is None else matchPattern)}"
 
         goOn = True
         iteration = 0
@@ -83,7 +85,7 @@ class While(SequenceBase):
                         conditionIsVerified = True
                     else:
                         value = str(collection[key])
-                        conditionIsVerified = True if regex.match(value) else False
+                        conditionIsVerified = (regex.match(value) is not None)
                 else:
                     conditionIsVerified = False
 
