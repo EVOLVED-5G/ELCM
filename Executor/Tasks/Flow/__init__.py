@@ -1,2 +1,2 @@
 from .parallel import Parallel
-from .sequences import Sequence, Repeat, While
+from .sequences import Sequence, Repeat, While, Select

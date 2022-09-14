@@ -66,7 +66,10 @@ class Task:
                 else:
                     self.params[key] = default
                     self.Log(Level.DEBUG, f"Parameter '{key}' set to default ({str(default)}).")
-        return True
+        return self.inDepthSanitizeParams()
+
+    def inDepthSanitizeParams(self):
+        return True  # Allow subclasses to perform extra checks on the parameters when needed
 
     def SetVerdictOnError(self):
         from Executor import Verdict
