@@ -14,7 +14,7 @@ class JenkinsBase(Task):
         try:
             self.client = self.getApiClient()
         except Exception as e:
-            self.Log(Level.Error, f"Unable to create Jenkins API client: {e}")
+            self.Log(Level.ERROR, f"Unable to create Jenkins API client: {e}")
             self.client = None
 
     def getApiClient(self) -> Evolved5gJenkinsApi:
