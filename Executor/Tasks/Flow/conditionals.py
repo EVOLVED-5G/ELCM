@@ -24,10 +24,14 @@ class ConditionalSequenceBase(SequenceBase):
                 self.Log(Level.ERROR, f"{errorPrefix} Either of 'Evaluate` or 'Key' must be defined. Aborting")
             return False
         return True
+
     @staticmethod
-    def regexConditionText(key, pattern, negate) -> str:
-        matchPattern = f"match regex '{pattern}'"
-        return f"'{key}' {('does not ' if negate else '')} {('exist' if pattern is None else matchPattern)}"
+    def getConditionText(evaluate, key, pattern, negate) -> str:
+        if evaluate is not None:
+            return f"Expression '{evaluate}' (expanded) is True"
+        else:
+            matchPattern = f"match regex '{pattern}'"
+            return f"'{key}' {('does not ' if negate else '')} {('exist' if pattern is None else matchPattern)}"
 
     @staticmethod
     def regexConditionIsTrue(key, collection, regex) -> bool:
@@ -43,24 +47,37 @@ class ConditionalSequenceBase(SequenceBase):
 class While(ConditionalSequenceBase):
     def __init__(self, logMethod, parent, params):
         super().__init__("While", logMethod, parent, params)
-        self.paramRules = {'Key': (None, True),
+        self.paramRules = { # Do not generate 'Key' or 'Evaluate' by default. Will be checked by dictIsValidCondition.
                            'Pattern': (None, False),
                            'Negate': (False, False),
                            'MaxIterations': (None, False)}
 
+    def inDepthSanitizeParams(self):
+        return self.dictIsValidCondition(self.params, "Invalid condition:")
+
     def runMany(self):
-        key = self.params["Key"]
+        evaluate = self.params.get('Evaluate', None)
+        key = self.params.get("Key", None)
         pattern = self.params["Pattern"]
         negate = self.params["Negate"]
         maxIterations = self.params["MaxIterations"]
         regex = re.compile(pattern) if pattern is not None else None
-        conditionText = self.regexConditionText(key, pattern, negate)
+        conditionText = self.getConditionText(evaluate, key, pattern, negate)
 
         goOn = True
         iteration = 0
         while goOn:
             if maxIterations is None or iteration < maxIterations:
-                conditionIsTrue = self.regexConditionIsTrue(key, self.parent.Params, regex)
+                if evaluate is not None:
+                    try:
+                        conditionIsTrue = eval(evaluate) is True
+                    except Exception as e:
+                        self.Log(Level.DEBUG, f"Exception while evaluating expression '{evaluate}' ({e}): "
+                                              f"Condition will be considered as not verified. Moving on.")
+                        conditionIsTrue = False
+                else:
+                    conditionIsTrue = self.regexConditionIsTrue(key, self.parent.Params, regex)
+
                 goOn = not conditionIsTrue if negate else conditionIsTrue
 
                 if goOn:
@@ -100,8 +117,7 @@ class Select(ConditionalSequenceBase):
                                   f"child tasks ({numChildren}). Aborting")
 
         for index, condition in enumerate(conditions):
-            errorPrefix = f"Invalid condition in position {index}:"
-            if not self.dictIsValidCondition(condition, errorPrefix):
+            if not self.dictIsValidCondition(condition, f"Invalid condition in position {index}:"):
                 return False
         return True
 
@@ -117,7 +133,7 @@ class Select(ConditionalSequenceBase):
                 try:
                     if eval(evaluate) is True:
                         needle = index
-                        conditionText = f"Expression '{evaluate}' (expanded) is True"
+                        conditionText = self.getConditionText(evaluate, None, None, None)
                         break
                 except Exception as e:
                     self.Log(Level.DEBUG, f"Exception while evaluating expression '{evaluate}' ({e}): "
@@ -133,7 +149,7 @@ class Select(ConditionalSequenceBase):
 
                 if verified:
                     needle = index
-                    conditionText = self.regexConditionText(key, pattern, negate)
+                    conditionText = self.getConditionText(None, key, pattern, negate)
                     break
 
         else:  # Nothing verified, check if there is a default branch
