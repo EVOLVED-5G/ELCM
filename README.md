@@ -75,12 +75,15 @@ Detailed usage documentation can be found in the `docs` folder of this repositor
    3. [TestCase Dashboard, PDF Creation](/docs/2-3_DASHBOARD_PDF.md)
    4. [Resources, Scenarios and Network Slices ](/docs/2-4_RESOURCE_SCENARIO_NS.md)
 3. TestCase Definition:
-   1. Available Tasks:
-      1. [General Taks](/docs/3-1a_GENERAL_TASKS.md)
-      2. [EVOLVED-5G Tasks](/docs/3-1b_EVOLVED-5G_TASKS.md)
-   2. [Variable Expansion and Execution Verdict](/docs/3-2_VARIABLE_EXPANSION_VERDICT.md)
-   3. [MONROE Experiments](/docs/3-3_MONROE.md)
-   4. [Implementing Additional Tasks](/docs/3-4_TASK_IMPLEMENTATION.md)
+   1. Task Order and Execution Flow:
+      1. [Experiment Composition, Top-Level Tasks and Children](/docs/3-1a-COMPOSITION.md)
+      2. [Flow Tasks](/docs/3-1b_FLOW_TASKS.md)
+   2. Available Tasks:
+      1. [General Tasks](/docs/3-2a_GENERAL_TASKS.md)
+      2. [EVOLVED-5G Tasks](/docs/3-2b_EVOLVED-5G_TASKS.md)
+   3. [Variable Expansion and Execution Verdict](/docs/3-3_VARIABLE_EXPANSION_VERDICT.md)
+   4. [MONROE Experiments](/docs/3-4_MONROE.md)
+   5. [Implementing Additional Tasks](/docs/3-5_TASK_IMPLEMENTATION.md)
 4. [Distributed Experiments](/docs/4_DISTRIBUTED.md)
 
 ## Authors
