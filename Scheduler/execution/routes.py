@@ -7,14 +7,15 @@ from Settings import Config
 from os.path import join, isfile, abspath
 
 
-@bp.route('<int:executionId>/cancel')
+@bp.route('<int:executionId>/cancel')  # Deprecated
+@bp.route('<int:executionId>', methods=["DELETE"])
 def cancel(executionId: int):
     ExecutionQueue.Cancel(executionId)
     flash(f'Cancelled execution {executionId}', 'info')
     return redirect(url_for('index'))
 
 
-@bp.route('<int:executionId>/delete')
+@bp.route('<int:executionId>/delete')  # To be removed
 def delete(executionId: int):
     ExecutionQueue.Delete(executionId)
     flash(f'Deleted execution {executionId}', 'info')
@@ -37,6 +38,7 @@ def view(executionId: int):
 
 
 @bp.route('<int:executionId>/json')
+@bp.route('<int:executionId>/status')
 def json(executionId: int):
     execution = executionOrTombstone(executionId)
     coarse = status = 'ERR'

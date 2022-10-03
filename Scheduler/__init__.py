@@ -40,7 +40,8 @@ from Scheduler.execution import bp as ExecutionBp
 app.register_blueprint(ExecutionBp, url_prefix='/execution')
 
 from Scheduler.dispatcher import bp as DispatcherBp
-app.register_blueprint(DispatcherBp, url_prefix='/api/v0')
+app.register_blueprint(DispatcherBp, url_prefix='/api/v0', name='deprecatedDispatcherApi')
+app.register_blueprint(DispatcherBp, url_prefix='/experiment')
 
 from Scheduler.facility import bp as FacilityBp
 app.register_blueprint(FacilityBp, url_prefix='/facility')
