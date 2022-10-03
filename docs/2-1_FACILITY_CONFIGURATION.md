@@ -17,6 +17,18 @@ load the contents of every `yml` file contained in these folders on startup and 
 the web dashboard is pressed. The dashboard will also display a validation log (`Facility log`) which can be used in
 order to detect errors on a TestCase or UE configuration.
 
+#### Task definition fields:
+
+- `Order`: Only for Top-Level Tasks ([Experiment Composition, Top-Level Tasks and Children](/docs/3-1a-COMPOSITION.md)).
+Tasks are ordered using these values (low to high) during the Composition.
+- `Task`: Task type identifier
+- `Label`: Custom label to use for identifying the task inside the execution logs. Auto-generated if not specified.
+- `Requirements`: List of platform resources required for the execution of the task
+([Resources, Scenarios and Network Slices ](/docs/2-4_RESOURCE_SCENARIO_NS.md))
+- `Config`: Dictionary of parameters for the task. These depend on the specific task type defined.
+- `Children`: A list of task definitions (empty by default). How a task makes use of this information depends on the
+specific task type.
+
 ### UEs
 The files on the `UEs` folder describe the actions to perform when a certain UE is included in the `Experiment 
 descriptor` received as part of the request (for example, initializing or configuring the UE). The `Composer` will
