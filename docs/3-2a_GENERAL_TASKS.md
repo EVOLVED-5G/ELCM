@@ -6,8 +6,8 @@ their configuration values.
 ### Common values:
 All tasks recognize the following configuration value:
 - `VerdictOnError`: Name of the verdict to reach when the task encounters an error during execution (what is considered
-an error varies from task to task). By default, the value in `config.yml` is used. See the 'Task and execution verdicts'
-section below for more information.
+an error varies from task to task). By default, the value in `config.yml` is used. See 'Task and execution verdicts'
+([Variable Expansion and Execution Verdict](/docs/3-3_VARIABLE_EXPANSION_VERDICT.md)).
 
 ## Run.CliExecute
 Executes a script or command through the command line. Configuration values:

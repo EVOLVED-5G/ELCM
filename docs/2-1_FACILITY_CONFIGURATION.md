@@ -40,11 +40,12 @@ The name of the UE will be extracted from the initial key on the dictionary (not
 contains a list of every action to perform, described by the relative `Order` in which to run, the `Task` to perform 
 (which correspond to the different Tasks defined in the `Executor.Tasks` package) and `Config` dictionary, which is 
 different for every task and optionally a list of `Requirements`. These requirements correspond to the resources 
-defined for the facility. (See "Facility resources" below). Additional information about the available tasks can 
-be seen in the `Available Tasks` section below.
+defined for the facility. (See "Facility resources" here 
+[Resources, Scenarios and Network Slices ](/docs/2-4_RESOURCE_SCENARIO_NS.md)). Additional information about the
+available tasks can be seen in [General Tasks](/docs/3-2a_GENERAL_TASKS.md).
 
-> More information about the composition process can be found in section 3.2 of Deliverable D3.15, please note that
-> this example uses the old `facility.yml` file, but the behavior is the same.
+> More information about the composition process can be found in
+> [Experiment Composition, Top-Level Tasks and Children](/docs/3-1a-COMPOSITION.md).
 
 ### TestCases
 Similarly to the UEs, the files in the ´TestCases´ folder define the actions required in order to execute a certain 

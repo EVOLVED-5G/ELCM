@@ -24,7 +24,8 @@ It is also possible to define default values during variable expansion, which me
 as 'Standard', where it will use the default values for all parameters, and 'Custom', where some values can be replaced
 by the experimenter.
 
-For more information see the 'Variable expansion' section below.
+For more information see 'Variable expansion'
+([Variable Expansion and Execution Verdict](/docs/3-3_VARIABLE_EXPANSION_VERDICT.md)).
 
 > Parameters with the equal names from different test cases are considered to be **the same**: They will appear only
 > once in the Portal when the user selects multiple test cases and will have the same value at run time. For example,
