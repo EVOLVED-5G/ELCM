@@ -50,7 +50,7 @@ runtime values.
 > ⚠ This task makes use of the [eval](https://docs.python.org/3/library/functions.html#eval) built-in function:
 > - The `Expression` can execute arbitrary code.
 > - Since the test cases are defined by the platform operators it is expected that no dangerous code will be executed,
-> however, **excercise extreme caution, specially if variable expansion is used** as part of the expression.
+> however, **exercise extreme caution, specially if variable expansion is used** as part of the expression.
 
 The following is an example of the use of this task:
 

@@ -47,7 +47,7 @@ class ConditionalSequenceBase(SequenceBase):
 class While(ConditionalSequenceBase):
     def __init__(self, logMethod, parent, params):
         super().__init__("While", logMethod, parent, params)
-        self.paramRules = { # Do not generate 'Key' or 'Evaluate' by default. Will be checked by dictIsValidCondition.
+        self.paramRules = {  # Do not generate 'Key' or 'Evaluate' by default. Will be checked by dictIsValidCondition.
                            'Pattern': (None, False),
                            'Negate': (False, False),
                            'MaxIterations': (None, False)}

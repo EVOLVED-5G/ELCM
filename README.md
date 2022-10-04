@@ -77,7 +77,7 @@ Detailed usage documentation can be found in the `docs` folder of this repositor
 3. TestCase Definition:
    1. Task Order and Execution Flow:
       1. [Experiment Composition, Top-Level Tasks and Children](/docs/3-1a-COMPOSITION.md)
-      2. [Flow Tasks](/docs/3-1b_FLOW_TASKS.md)
+      2. [Flow Control Tasks](/docs/3-1b_FLOW_TASKS.md)
    2. Available Tasks:
       1. [General Tasks](/docs/3-2a_GENERAL_TASKS.md)
       2. [EVOLVED-5G Tasks](/docs/3-2b_EVOLVED-5G_TASKS.md)

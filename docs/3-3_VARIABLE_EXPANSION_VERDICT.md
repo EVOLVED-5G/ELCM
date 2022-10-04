@@ -16,6 +16,12 @@ Separate values from the `Parameters` dictionary can also be expanded using the 
 - `@[Params.key]`: The value of `key` in the dictionary, or `<<UNDEFINED>>` if not found
 - `@[Params.key:default]`: The value of `key` in the dictionary, or `default` if not found
 
+Additionally, the following values are available for children of a Flow task
+([Flow Control Tasks](/docs/3-1b_FLOW_TASKS.md)):
+- `@{Iter0}`: Current iteration number on Repeat and While, zero-indexed.
+- `@{Iter1}`: Current iteration number on Repeat and While, one-indexed.
+- `@{Branch}`: Branch number (zero-indexed) on Parallel and Select.
+
 > A keen reader may notice that these expressions are very similar to the ones defined for `Run.Publish`: They are 
 > implemented together, but use different dictionaries when looking for values. When an expression does not include 
 > a '.' the ELCM will fall back to looking at the Publish values (the default for Release A). If the collection 
