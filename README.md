@@ -25,8 +25,7 @@
 
 > Additional dependencies may be needed depending on your environment. For example, older Windows version may require
 certain Visual C++ redistributables to be installed, and the following packages are known to be required on many Ubuntu
-distributions: `gcc python3.10 python3.10-venv python3.10-dev`. Fixes for specific issues are usually easy to find on 
-Internet.
+distributions: `gcc python3.10 python3.10-venv python3.10-dev`.
 
 This repository includes two sets of scripts for use on Linux (`.sh`) and Windows (`.ps1`) machines. In general,
 these scripts should be able to perform most of the actions required for instantiating the ELCM, however, depending
@@ -85,6 +84,10 @@ Detailed usage documentation can be found in the `docs` folder of this repositor
    4. [MONROE Experiments](/docs/3-4_MONROE.md)
    5. [Implementing Additional Tasks](/docs/3-5_TASK_IMPLEMENTATION.md)
 4. [Distributed Experiments](/docs/4_DISTRIBUTED.md)
+
+#### Appendix
+1. [REST Endpoints](/docs/A1_ENDPOINTS.md)
+2. [Experiment Descriptor](/docs/A2_EXPERIMENT_DESCRIPTOR.md)
 
 ## Authors
 

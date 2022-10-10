@@ -1,3 +1,16 @@
+**10/10/2022** [Version 3.6.0]
+
+ - Implemented Child tasks, flow control:
+   - Sequence
+   - Parallel
+   - Repeat
+   - While
+   - Select
+ - Added Task labels
+ - Updated log views in dashboard
+ - Documentation reorganization
+ - Bug fixes
+
 **30/06/2022** [Version 3.5.0 - Release A]
 
  - Add Variables parameter to Robot Framework task
