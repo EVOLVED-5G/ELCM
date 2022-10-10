@@ -7,6 +7,14 @@ class TaskDefinition:
     def __init__(self):
         self.Task: ClassVar = None
         self.Params: Dict = {}
+        self.Label: str = ''
+        self.Children: List[TaskDefinition] = []
+
+    def GetTaskInstance(self, logMethod, parent, params):
+        taskInstance = self.Task(logMethod, parent, params)
+        taskInstance.Label = self.Label
+        taskInstance.Children = self.Children
+        return taskInstance
 
 
 class PlatformConfiguration:

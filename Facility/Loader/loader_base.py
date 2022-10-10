@@ -51,14 +51,12 @@ class Loader:
         validation = []
 
         for action in data:
-            actionInfo = ActionInformation.FromMapping(action)
+            actionInfo, maybeError = ActionInformation.FromMapping(action, isFirstLevel=True)
             if actionInfo is not None:
                 actionList.append(actionInfo)
             else:
-                validation.append((Level.ERROR, f'Action not correctly defined for element (data="{action}").'))
-                actionList.append(ActionInformation.MessageAction(
-                    'ERROR', f'Incorrect Action (data="{action}")'
-                ))
+                validation.append((Level.ERROR, maybeError))
+                actionList.append(ActionInformation.MessageAction('ERROR', maybeError))
 
         if len(actionList) == 0:
             validation.append((Level.WARNING, 'No actions defined'))

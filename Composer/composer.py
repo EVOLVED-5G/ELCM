@@ -11,21 +11,23 @@ from Interfaces import Management
 class Composer:
     facility: Facility = None
 
+    @staticmethod
+    def getMessageAction(severity: str, message: str) -> ActionInformation:
+        action = ActionInformation()
+        action.TaskName = "Run.Message"
+        action.Order = -9999
+        action.Config = {'Severity': severity, 'Message': message}
+        return action
+
+    @staticmethod
+    def getMessageTask(severity: str, message: str) -> TaskDefinition:
+        task = TaskDefinition()
+        task.Task = Message
+        task.Params = {'Severity': severity, 'Message': message}
+        return task
+
     @classmethod
     def Compose(cls, descriptor: ExperimentDescriptor) -> PlatformConfiguration:
-        def _messageAction(severity: str, message: str) -> ActionInformation:
-            action = ActionInformation()
-            action.TaskName = "Run.Message"
-            action.Order = -9999
-            action.Config = {'Severity': severity, 'Message': message}
-            return action
-
-        def _messageTask(severity: str, message: str) -> TaskDefinition:
-            task = TaskDefinition()
-            task.Task = Message
-            task.Params = {'Severity': severity, 'Message': message}
-            return task
-
         if cls.facility is None:
             cls.facility = Facility()
 
@@ -54,9 +56,8 @@ class Composer:
                         configuration.NetworkServices.append(nsInfo)
                     except Exception as e:
                         errored = True
-                        actions.append(
-                            _messageAction("ERROR",
-                                           f"Exception while obtaining information about network service {nsId}: {e}"))
+                        actions.append(cls.getMessageAction(
+                            "ERROR", f"Exception while obtaining information about network service {nsId}: {e}"))
 
             if not errored:
                 nest, error = cls.composeNest(descriptor.Slice, descriptor.Scenario, configuration.NetworkServices)
@@ -64,7 +65,8 @@ class Composer:
                     configuration.Nest = nest
                 else:
                     errored = True
-                    actions.append(_messageAction("ERROR", f'Error while generating NEST data for experiment: {error}'))
+                    actions.append(cls.getMessageAction(
+                        "ERROR", f'Error while generating NEST data for experiment: {error}'))
 
         if not errored:
             if descriptor.Type == ExperimentType.MONROE:
@@ -78,8 +80,8 @@ class Composer:
                         if len(testcaseActions) != 0:
                             actions.extend(testcaseActions)
                         else:
-                            actions.append(_messageAction("WARNING",  # Notify, but do not cancel execution
-                                                          f'TestCase "{testcase}" did not generate any actions'))
+                            actions.append(cls.getMessageAction(  # Notify, but do not cancel execution
+                                "WARNING", f'TestCase "{testcase}" did not generate any actions'))
                         panels.extend(cls.facility.GetTestCaseDashboards(testcase))
                 else:
                     delay = ActionInformation()
@@ -87,19 +89,12 @@ class Composer:
                     delay.Config = {'Time': descriptor.Duration*60}
                     actions.append(delay)
 
-        actions.sort(key=lambda action: action.Order)  # Sort by Order
+        actions.sort(key=lambda action: action.Order)  # Sort by Order (only those at first level)
         requirements = set()
 
         for action in actions:
             requirements.update(action.Requirements)
-
-            task = cls.getTaskClass(action.TaskName)
-            if task is None:
-                taskDefinition = _messageTask("ERROR", f"Could not find task {action.TaskName}")
-            else:
-                taskDefinition = TaskDefinition()
-                taskDefinition.Params = action.Config
-                taskDefinition.Task = task
+            taskDefinition = cls.getTaskDefinition(action)
             configuration.RunTasks.append(taskDefinition)
 
         configuration.Requirements = list(requirements)
@@ -116,6 +111,22 @@ class Composer:
         except (ModuleNotFoundError, AttributeError, ValueError):
             Log.E(f'Task "{taskName}" not found')
             return None
+
+    @classmethod
+    def getTaskDefinition(cls, action: ActionInformation):
+        task = cls.getTaskClass(action.TaskName)
+        if task is None:
+            taskDefinition = cls.getMessageTask("ERROR", f"Could not find task {action.TaskName}")
+        else:
+            taskDefinition = TaskDefinition()
+            taskDefinition.Params = action.Config
+            taskDefinition.Task = task
+            taskDefinition.Label = action.Label
+            taskDefinition.Children = []
+            for child in action.Children:
+                childDefinition = cls.getTaskDefinition(child)  # Either will be a _real_ task or a message
+                taskDefinition.Children.append(childDefinition)
+        return taskDefinition
 
     @classmethod
     def composeNest(cls, baseSlice: str, scenario: str, nss: List[NsInfo]) -> Tuple[Dict, Optional[str]]:
