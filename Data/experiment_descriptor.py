@@ -16,7 +16,7 @@ class ExperimentType(Enum):
 class ExperimentDescriptor:
     def __init__(self, data: Dict):
         time = datetime.now(timezone.utc).strftime("%y%m%d%H%M%S")
-        self.Valid, self.Missing = self.validate(data)
+        self.Valid, self.Missing, self.TimeSlot = self.validate(data)
         self._data = data
         if self.Valid:
             self.Type = ExperimentType[data['ExperimentType']]
@@ -26,11 +26,25 @@ class ExperimentDescriptor:
             self.Identifier = time
 
     @staticmethod
-    def validate(data: Dict) -> Tuple[bool, List[str]]:
+    def validate(data: Dict) -> Tuple[bool, List[str], Tuple[datetime, datetime]]:
         keys = ['Version', 'ExperimentType', 'TestCases', 'UEs', 'Slice', 'NSs',
                 'ExclusiveExecution', 'Scenario', 'Automated', 'ReservationTime',
                 'Application', 'Parameters', 'Remote', 'Extra']
-        return Serialize.CheckKeys(data, *keys)
+        valid, missing = Serialize.CheckKeys(data, *keys)
+
+        # Extra check/conversion for TimeSlot
+        start = datetime.min.replace(tzinfo=timezone.utc)
+        end = datetime.max.replace(tzinfo=timezone.utc)
+        if valid:
+            try:
+                posixStart, posixEnd = data.get("TimeSlot", (None, None))
+                start = start if posixStart is None else datetime.fromtimestamp(int(posixStart), timezone.utc)
+                end = end if posixEnd is None else datetime.fromtimestamp(int(posixEnd), timezone.utc)
+            except (IndexError, ValueError):
+                valid = False
+                missing.append("TimeSlot")
+
+        return valid, missing, (start, end)
 
     @property
     def Json(self) -> Dict:

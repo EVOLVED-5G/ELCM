@@ -29,10 +29,15 @@ class PreRunner(ExecutorBase):
                                     self.Configuration.NetworkServices, self).Start()
             available = result['Available']
             feasible = result['Feasible']
+            late = result['Late']
+            if late:
+                self.AddMessage('Time slot exceeded. Aborting')
+                self.Log(Level.ERROR, 'Unable to continue. Time slot for the experiment has been exceeded.')
+                raise RuntimeError("Execution time slot exceeded.")
             if not feasible:
                 self.AddMessage('Instantiation impossible. Aborting')
                 self.Log(Level.ERROR,
-                         'Unable to continue. Not enough total resources on VIMs for network services deployment')
+                         'Unable to continue. Not enough total resources on VIMs for network services deployment.')
                 raise RuntimeError("Not enough VIM resources for experiment.")
             if not available:
                 self.AddMessage('Not available')

@@ -18,7 +18,8 @@ class CheckResources(Task):
         if len(networkServices) != 0:
             self.Log(Level.DEBUG, f'NS Requirements: {networkServices}')
 
-        available, feasible = Management.HasResources(self.parent, localRequirements, networkServices, exclusive)
+        available, feasible, late = Management.HasResources(self.parent, localRequirements, networkServices, exclusive)
         self.params['Available'] = available
         self.params['Feasible'] = feasible
+        self.params['Late'] = late
         self.Log(Level.INFO, f'Resources {"not" if not available else ""} available')

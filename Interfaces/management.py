@@ -4,6 +4,7 @@ from Settings import Config
 from typing import Dict, Optional, Tuple, List
 from Data import Metal, MetalUsage, NsInfo
 from Facility import Facility
+from datetime import datetime, timezone
 
 
 class Management:
@@ -11,20 +12,27 @@ class Management:
 
     @classmethod
     def HasResources(cls, owner: 'ExecutorBase', localResources: List[str],
-                     networkServices: List[NsInfo], exclusive: bool) -> Tuple[bool, bool]:
-        """Returns [<available>, <feasible>].
+                     networkServices: List[NsInfo], exclusive: bool) -> Tuple[bool, bool, bool]:
+        """ Returns [<available>, <feasible>, <late>].
             - Available indicates that the required local resources are locked and can be used, and there are
-            enough on all VIMs to fit the network services.
+            enough resources on all VIMs to fit the network services.
             - A feasible value of False indicates that the network services can never fit on the VIMs due to
             their total resoutces.
-            """
+            - Late returns True if the time slot for the execution has been exceeded.
+        """
+
+        _, end = owner.Descriptor.TimeSlot
+        now = datetime.now(timezone.utc)
+        if now > end:
+            Log.E(f"Requested time slot has been exceeded. Execution unfeasible.")
+            return False, False, True
 
         if len(networkServices) != 0:
             try:
                 vimResources = cls.SliceManager().GetVimResources()
             except Exception as e:
                 Log.E(f"Exception while retrieving VIM resources: {e}")
-                return False, True
+                return False, True, False
 
             totalRequired: Dict[str, Metal] = {}
             for ns in networkServices:
@@ -37,16 +45,16 @@ class Management:
             for vim, required in totalRequired.items():
                 if vim not in vimResources.keys():
                     Log.E(f"Unknown VIM '{vim}'. Execution unfeasible.")
-                    return False, False
+                    return False, False, False
                 current = vimResources[vim]
                 if (required.Cpu > current.TotalCpu or
                         required.Ram > current.TotalRam or required.Disk > current.TotalDisk):
                     Log.E(f"Insufficient resources on {vim}. Execution unfeasible ({required} > {current})")
-                    return False, False
+                    return False, False, False
                 if required.Cpu > current.Cpu or required.Ram > current.Ram or required.Disk > current.Disk:
-                    return False, True  # Execution possible, but not enough resources at the moment
+                    return False, True, False  # Execution possible, but not enough resources at the moment
 
-        return Facility.TryLockResources(localResources, owner, exclusive), True
+        return Facility.TryLockResources(localResources, owner, exclusive), True, False
 
     @classmethod
     def ReleaseLocalResources(cls, owner: 'ExecutorBase', localResources: List[str]):

@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple, Optional
 from threading import Lock
 from Utils import synchronized
 from .Loader import Loader, ResourceLoader, ScenarioLoader, UeLoader, TestCaseLoader
+from datetime import datetime, timezone
 
 
 class Facility:
@@ -121,6 +122,16 @@ class Facility:
 
         if owner.ExecutionId not in cls.requesters.keys():
             cls.requesters[executor] = resourceIds
+
+        # First check if we are within the requested time slot
+        timeformat = "%Y-%m-%dT%H:%M:%SZ"
+        start, end = owner.Descriptor.TimeSlot
+        now = datetime.now(timezone.utc)
+
+        if not start < now < end:
+            Log.D(f"Resources denied to {executor}: "
+                  f"Not within requested time slot ({start.strftime(timeformat)} to {end.strftime(timeformat)}).")
+            return False
 
         # For exclusive experiments check if something else is running
         if exclusive and cls.activeExperiments != 0:
