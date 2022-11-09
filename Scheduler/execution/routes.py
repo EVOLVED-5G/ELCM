@@ -133,12 +133,12 @@ def kpis(executionId: int):
     execution = executionOrTombstone(executionId)
 
     if execution is not None:
-        kpis = []
+        kpis = set()
         descriptor = ExperimentDescriptor(execution.JsonDescriptor)
-        for testcase in sorted(descriptor.TestCases):
-            kpis.extend(Facility.GetTestCaseKPIs(testcase))
+        for testcase in descriptor.TestCases:
+            kpis.update(Facility.GetTestCaseKPIs(testcase))
 
-        return jsonify({"KPIs": kpis})
+        return jsonify({"KPIs": sorted(kpis)})
     else:
         return f"Execution {executionId} not found", 404
 
