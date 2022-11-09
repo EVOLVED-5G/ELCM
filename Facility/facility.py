@@ -24,6 +24,7 @@ class Facility:
     testCases: Dict[str, List[ActionInformation]] = {}
     extra: Dict[str, Dict[str, object]] = {}
     dashboards: Dict[str, List[DashboardPanel]] = {}
+    kpis: Dict[str, List[Tuple[str, str]]] = {}
     resources: Dict[str, Resource] = {}
     scenarios: Dict[str, Dict] = {}
 
@@ -63,6 +64,7 @@ class Facility:
         cls.testCases = TestCaseLoader.GetCurrentTestCases()
         cls.extra = TestCaseLoader.GetCurrentTestCaseExtras()
         cls.dashboards = TestCaseLoader.GetCurrentDashboards()
+        cls.kpis = TestCaseLoader.GetCurrentTestCaseKPIs()
         cls.ues = UeLoader.GetCurrentUEs()
         cls.scenarios = ScenarioLoader.GetCurrentScenarios()
 
@@ -94,6 +96,10 @@ class Facility:
     @classmethod
     def GetTestCaseExtra(cls, id: str) -> Dict[str, object]:
         return cls.extra.get(id, {})
+
+    @classmethod
+    def GetTestCaseKPIs(cls, id: str) -> List[Tuple[str, str]]:
+        return cls.kpis.get(id, [])
 
     @classmethod
     def BusyResources(cls) -> List[Resource]:
