@@ -57,7 +57,7 @@ class baseDialect(Dialect):
     doublequote = False
     skipinitialspace = False
     lineterminator = '\r\n'
-    quotechar = ''
+    quotechar = '"'
     quoting = QUOTE_NONE
 
 

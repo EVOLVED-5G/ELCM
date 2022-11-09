@@ -18,12 +18,14 @@ class TestCaseData:
         # V2 only
         self.Name: (str | None) = data.pop('Name', None)
         self.Sequence: List[Dict] = data.pop('Sequence', [])
+        self.KPIs: Dict[str, List[str]] = data.pop('KPIs', {})
 
 
 class TestCaseLoader(Loader):
     testCases: Dict[str, List[ActionInformation]] = {}
     extra: Dict[str, Dict[str, object]] = {}
     dashboards: Dict[str, List[DashboardPanel]] = {}
+    kpis: Dict[str, List[Tuple[str, str]]] = {}
     parameters: Dict[str, Tuple[str, str]] = {}  # For use only while processing data, not necessary afterwards
 
     @classmethod
@@ -86,6 +88,29 @@ class TestCaseLoader(Loader):
         return validation
 
     @classmethod
+    def validateKPIs(cls, key: str, defs: TestCaseData) -> [(Level, str)]:
+        kpis = []
+        validation = []
+
+        try:
+            for measurement in sorted(defs.KPIs.keys()):
+                kpiList = defs.KPIs[measurement]
+                if not isinstance(kpiList, List):
+                    validation.append(
+                        (Level.ERROR, f"KPIs for '{measurement}' ({key}) are not a list. Found '{kpiList}'"))
+                elif len(kpiList) == 0:
+                    validation.append(
+                        (Level.ERROR, f"'{measurement}' ({key}) defines an empty listf of KPIs"))
+                else:
+                    for kpi in sorted(kpiList):
+                        kpis.append((measurement, kpi))
+        except Exception as e:
+            validation.append((Level.ERROR, f"Could not read KPIs dictionary for testcase '{key}': {e}"))
+
+        cls.kpis[key] = kpis
+        return validation
+
+    @classmethod
     def ProcessData(cls, data: Dict) -> [(Level, str)]:
         version = str(data.pop('Version', 1))
 
@@ -141,6 +166,9 @@ class TestCaseLoader(Loader):
             cls.createDashboard(defs.Name, defs))
 
         validation.extend(
+            cls.validateKPIs(defs.Name, defs))
+
+        validation.extend(
             cls.validateParameters(defs))
 
         return validation
@@ -150,6 +178,7 @@ class TestCaseLoader(Loader):
         cls.testCases = {}
         cls.extra = {}
         cls.dashboards = {}
+        cls.kpis = {}
         cls.parameters = {}
 
     @classmethod
@@ -159,6 +188,10 @@ class TestCaseLoader(Loader):
     @classmethod
     def GetCurrentTestCaseExtras(cls):
         return cls.extra
+
+    @classmethod
+    def GetCurrentTestCaseKPIs(cls):
+        return cls.kpis
 
     @classmethod
     def GetCurrentDashboards(cls):

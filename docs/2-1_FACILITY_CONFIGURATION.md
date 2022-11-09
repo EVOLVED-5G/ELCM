@@ -91,6 +91,9 @@ Distributed: False
 Dashboard: {}
 ````
 
+V2 TestCases can also contain an optional `KPIs` field, which can be used to define a sub-set of results that are
+considered *of interest*. See [TestCase Parameters](/docs/2-2_TESTCASE_PARAMETERS.md) for more information.
+
 ##### - V1 TestCase (`Version: 1` or missing)
 
 TestCases using this format follow the same approach as for UE files. The following is an example V1 TestCase:

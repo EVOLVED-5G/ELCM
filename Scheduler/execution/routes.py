@@ -4,6 +4,8 @@ from Experiment import ExperimentRun, Tombstone
 from Scheduler.execution import bp
 from typing import Union, Optional
 from Settings import Config
+from Data import ExperimentDescriptor
+from Facility import Facility
 from os.path import join, isfile, abspath
 
 
@@ -122,6 +124,21 @@ def descriptor(executionId: int):
 
     if execution is not None:
         return jsonify(execution.JsonDescriptor)
+    else:
+        return f"Execution {executionId} not found", 404
+
+
+@bp.route('<int:executionId>/kpis')
+def kpis(executionId: int):
+    execution = executionOrTombstone(executionId)
+
+    if execution is not None:
+        kpis = set()
+        descriptor = ExperimentDescriptor(execution.JsonDescriptor)
+        for testcase in descriptor.TestCases:
+            kpis.update(Facility.GetTestCaseKPIs(testcase))
+
+        return jsonify({"KPIs": sorted(kpis)})
     else:
         return f"Execution {executionId} not found", 404
 

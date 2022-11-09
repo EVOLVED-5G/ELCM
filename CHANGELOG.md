@@ -1,3 +1,8 @@
+**09/11/2022** [Version 3.6.1]
+ - Allow defining a set of KPIs per TestCase
+ - Implement `/execution/<id>/kpis` endpoint
+ - Avoid exception when sending CSVs to InfluxDb on Python 3.11
+
 **10/10/2022** [Version 3.6.0]
 
  - Implemented Child tasks, flow control:
