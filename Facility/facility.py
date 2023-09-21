@@ -24,7 +24,7 @@ class Facility:
     testCases: Dict[str, List[ActionInformation]] = {}
     extra: Dict[str, Dict[str, object]] = {}
     dashboards: Dict[str, List[DashboardPanel]] = {}
-    kpis: Dict[str, List[Tuple[str, str]]] = {}
+    kpis: Dict[str, List[Tuple[str, str, str, str]]] = {}
     resources: Dict[str, Resource] = {}
     scenarios: Dict[str, Dict] = {}
 
@@ -98,7 +98,7 @@ class Facility:
         return cls.extra.get(id, {})
 
     @classmethod
-    def GetTestCaseKPIs(cls, id: str) -> List[Tuple[str, str]]:
+    def GetTestCaseKPIs(cls, id: str) -> List[Tuple[str, str, str, str]]:
         return cls.kpis.get(id, [])
 
     @classmethod

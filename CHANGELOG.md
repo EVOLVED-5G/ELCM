@@ -1,3 +1,7 @@
+**21/09/2023** [Version 3.6.2]
+ - Add a prefix (`/elcm/api/v1/`) to all endpoints
+ - Allow defining and return a more complete description of the KPIs in the `/elcm/api/v1/<id>/kpis` endpoint
+
 **09/11/2022** [Version 3.6.1]
  - Allow defining a set of KPIs per TestCase
  - Implement `/execution/<id>/kpis` endpoint

@@ -48,8 +48,17 @@ Returns a copy of the Experiment Descriptor that was used to define the executio
 
 ### [GET] `/elcm/api/v1/execution/<id>/kpis`
 
-Returns a dictionary with a single `KPIs` key, containing a list of pairs (`measurement`, `kpi`) that are considered of
-interest.
+Returns a dictionary with a single `KPIs` key, containing a list of objects that describe KPIs that are considered of
+interest. The objects have the following format:
+
+```text
+{ 
+    "Measurement": <Measurement (table) name>,
+    "KPI": <KPI name>,
+    "Type": <KPI group, may be an empty string>,
+    "Description": <Description of the KPI, may be an empty string>
+}
+```
 
 > These values can be used as part of queries to the [Analytics Module](https://github.com/5genesis/Analytics), in order
 > to extract a sub-set of important KPIs from all the generated measurements.

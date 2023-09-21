@@ -25,7 +25,7 @@ class TestCaseLoader(Loader):
     testCases: Dict[str, List[ActionInformation]] = {}
     extra: Dict[str, Dict[str, object]] = {}
     dashboards: Dict[str, List[DashboardPanel]] = {}
-    kpis: Dict[str, List[Tuple[str, str]]] = {}
+    kpis: Dict[str, List[Tuple[str, str, str, str]]] = {}  # (Measurement, KPI, Type, Description)
     parameters: Dict[str, Tuple[str, str]] = {}  # For use only while processing data, not necessary afterwards
 
     @classmethod
@@ -100,10 +100,22 @@ class TestCaseLoader(Loader):
                         (Level.ERROR, f"KPIs for '{measurement}' ({key}) are not a list. Found '{kpiList}'"))
                 elif len(kpiList) == 0:
                     validation.append(
-                        (Level.ERROR, f"'{measurement}' ({key}) defines an empty listf of KPIs"))
+                        (Level.ERROR, f"'{measurement}' ({key}) defines an empty list of KPIs"))
                 else:
-                    for kpi in sorted(kpiList):
-                        kpis.append((measurement, kpi))
+                    for kpi in sorted(kpiList, key=lambda x: x if isinstance(x, str) else x.get('Name', '')):
+                        description = kind = ""
+                        if isinstance(kpi, str):
+                            name = kpi
+                        elif isinstance(kpi, dict):
+                            name = kpi.get('Name', '')
+                            description = kpi.get('Description', '')
+                            kind = kpi.get('Type', '')
+                        else:
+                            validation.append(
+                                (Level.ERROR, f"KPI definitions for '{measurement}' must either be str or a "
+                                              f"dictionary (keys ['Name', 'Type', 'Description']). Found '{kpi}'"))
+                            continue
+                        kpis.append((measurement, name, kind, description))
         except Exception as e:
             validation.append((Level.ERROR, f"Could not read KPIs dictionary for testcase '{key}': {e}"))
 
