@@ -1,3 +1,6 @@
+**28/09/2023** [Version 3.6.3]
+ - Re-enable original endpoints (deprecated) to retain compatibility with Portal
+
 **21/09/2023** [Version 3.6.2]
  - Add a prefix (`/elcm/api/v1/`) to all endpoints
  - Allow defining and return a more complete description of the KPIs in the `/elcm/api/v1/<id>/kpis` endpoint
