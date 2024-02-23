@@ -9,11 +9,25 @@ from Settings import Config
 from Interfaces import PortalApi
 from Composer import Composer, PlatformConfiguration
 from os.path import join, abspath
+from Helper import Cli
 
 
 @unique
 class CoarseStatus(Enum):
     Init, PreRun, Run, PostRun, Finished, Cancelled, Errored = range(7)
+
+
+class AppEviction:
+    def __init__(self, device_id: str):
+        self.deviceId = device_id
+
+    @classmethod
+    def run(self):
+        pass
+
+    @classmethod
+    def os_detection(self):
+        pass
 
 
 class ExperimentRun:
@@ -147,6 +161,10 @@ class ExperimentRun:
         if current is not None:
             current.RequestStop()
         self.CoarseStatus = CoarseStatus.Cancelled
+        ######
+        # Make the app evicted with adb ....
+        ######
+        self.PostRunner.Start()  # Temporal fix for the release of the resources after the cancellation.
 
     def PreRun(self):
         self.CoarseStatus = CoarseStatus.PreRun

@@ -10,7 +10,7 @@ from os.path import join, isfile, abspath
 
 
 @bp.route('<int:executionId>/cancel')  # Deprecated
-@bp.route('<int:executionId>', methods=["DELETE"])
+# @bp.route('<int:executionId>', methods=["DELETE"])
 def cancel(executionId: int):
     ExecutionQueue.Cancel(executionId)
     flash(f'Cancelled execution {executionId}', 'info')
