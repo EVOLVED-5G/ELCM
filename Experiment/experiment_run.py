@@ -1,3 +1,6 @@
+import subprocess
+import re
+
 from Executor import PreRunner, Executor, PostRunner, ExecutorBase, Verdict
 from Data import ExperimentDescriptor
 from typing import Dict, Optional, List
@@ -15,19 +18,6 @@ from Helper import Cli
 @unique
 class CoarseStatus(Enum):
     Init, PreRun, Run, PostRun, Finished, Cancelled, Errored = range(7)
-
-
-class AppEviction:
-    def __init__(self, device_id: str):
-        self.deviceId = device_id
-
-    @classmethod
-    def run(self):
-        pass
-
-    @classmethod
-    def os_detection(self):
-        pass
 
 
 class ExperimentRun:
@@ -161,9 +151,7 @@ class ExperimentRun:
         if current is not None:
             current.RequestStop()
         self.CoarseStatus = CoarseStatus.Cancelled
-        ######
-        # Make the app evicted with adb ....
-        ######
+        self.AppEviction()
         self.PostRunner.Start()  # Temporal fix for the release of the resources after the cancellation.
 
     def PreRun(self):
@@ -285,3 +273,20 @@ class ExperimentRun:
     @classmethod
     def Digest(cls, id: str) -> Dict:
         return Serialize.Load(Serialize.Path('Execution', id))
+
+    def AppEviction(self):
+        list_command = f'adb -s {self.Params["DeviceID"]} shell pm list packages'
+        pattern = r"(.*)(com.uma.(.*))"
+        process = subprocess.Popen(list_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+        pipe = process.stdout
+
+        for line in iter(pipe.readline, b''):
+            try:
+                result = re.search(pattern, line.decode('utf-8'))
+                if result:
+                    stop_command = f'adb -s {self.Params["DeviceID"]} shell am force-stop {result.group(2)}'
+                    subprocess.Popen(stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+                    Log.I(f"Package {result.group(2)} stopped.")
+
+            except Exception as e:
+                Log.E(f"DECODING EXCEPTION: {e}")
