@@ -1,5 +1,6 @@
 import subprocess
 import re
+import platform
 
 from Executor import PreRunner, Executor, PostRunner, ExecutorBase, Verdict
 from Data import ExperimentDescriptor
@@ -151,7 +152,9 @@ class ExperimentRun:
         if current is not None:
             current.RequestStop()
         self.CoarseStatus = CoarseStatus.Cancelled
-        self.AppEviction()
+        for device_id in self.Params["DeviceId"]:
+            self.AppEviction(device_id)
+        self.TapEviction()
         self.PostRunner.Start()  # Temporal fix for the release of the resources after the cancellation.
 
     def PreRun(self):
@@ -274,19 +277,33 @@ class ExperimentRun:
     def Digest(cls, id: str) -> Dict:
         return Serialize.Load(Serialize.Path('Execution', id))
 
-    def AppEviction(self):
-        list_command = f'adb -s {self.Params["DeviceID"]} shell pm list packages'
+    def AppEviction(self, device_id):
+        commands = f'adb -s {device_id} shell pm list packages'
         pattern = r"(.*)(com.uma.(.*))"
-        process = subprocess.Popen(list_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+        process = subprocess.Popen(commands.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
         pipe = process.stdout
 
         for line in iter(pipe.readline, b''):
             try:
                 result = re.search(pattern, line.decode('utf-8'))
                 if result:
-                    stop_command = f'adb -s {self.Params["DeviceID"]} shell am force-stop {result.group(2)}'
-                    subprocess.Popen(stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+                    app_stop_command = f'adb -s {device_id} shell am force-stop {result.group(2)}'
+                    subprocess.Popen(app_stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
                     Log.I(f"Package {result.group(2)} stopped.")
-
             except Exception as e:
                 Log.E(f"DECODING EXCEPTION: {e}")
+
+    def TapEviction(self):
+        if platform.system() == 'Linux':
+            pass
+        elif platform.system() == 'Windows':
+            commands = '$(Get-Process | Where-Object { $_.ProcessName -eq "tap" }).Id'
+            process = subprocess.Popen(commands.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=".")
+            pipe = process.stdout
+
+            for line in iter(pipe.readline, b''):
+                try:
+                    tap_stop_command = f"kill {line.decode('utf-8')}"
+                    subprocess.Popen(tap_stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=".")
+                except Exception as e:
+                    Log.W(f"{e}. Cannot find a process with the process identifier {line.decode('utf-8')}.")
