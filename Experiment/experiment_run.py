@@ -152,8 +152,7 @@ class ExperimentRun:
         if current is not None:
             current.RequestStop()
         self.CoarseStatus = CoarseStatus.Cancelled
-        for device_id in self.Params["DeviceId"]:
-            self.AppEviction(device_id)
+        self.AppEviction(self.Params["DeviceId"])
         self.TapEviction()
         self.PostRunner.Start()  # Temporal fix for the release of the resources after the cancellation.
 
@@ -297,13 +296,5 @@ class ExperimentRun:
         if platform.system() == 'Linux':
             pass
         elif platform.system() == 'Windows':
-            commands = '$(Get-Process | Where-Object { $_.ProcessName -eq "tap" }).Id'
-            process = subprocess.Popen(commands.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=".")
-            pipe = process.stdout
-
-            for line in iter(pipe.readline, b''):
-                try:
-                    tap_stop_command = f"kill {line.decode('utf-8')}"
-                    subprocess.Popen(tap_stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=".")
-                except Exception as e:
-                    Log.W(f"{e}. Cannot find a process with the process identifier {line.decode('utf-8')}.")
+            tap_stop_command = f'taskkill /IM "tap.exe" /F'
+            subprocess.run(tap_stop_command, shell=True)
