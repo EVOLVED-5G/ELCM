@@ -6,6 +6,7 @@ from Data import Metal, MetalUsage, NsInfo
 from Facility import Facility
 
 
+
 class Management:
     sliceManager = None
 
@@ -16,7 +17,7 @@ class Management:
             - Available indicates that the required local resources are locked and can be used, and there are
             enough on all VIMs to fit the network services.
             - A feasible value of False indicates that the network services can never fit on the VIMs due to
-            their total resoutces.
+            their total resources.
             """
 
         if len(networkServices) != 0:
@@ -47,7 +48,6 @@ class Management:
                     return False, True  # Execution possible, but not enough resources at the moment
 
         return Facility.TryLockResources(localResources, owner, exclusive), True
-
     @classmethod
     def ReleaseLocalResources(cls, owner: 'ExecutorBase', localResources: List[str]):
         Facility.ReleaseResources(localResources, owner)
@@ -144,7 +144,8 @@ class SliceManager(RestClient):
             if isinstance(data, list):
                 if len(data) != 0:
                     data = data[0]
-                else: raise RuntimeError("Received an empty list")
+                else:
+                    raise RuntimeError("Received an empty list")
             try:
                 flavor = data["flavor"]
                 return data['nsd-name'], data['nsd-id'], Metal(cpu=flavor["vcpu-count"],
