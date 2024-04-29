@@ -5,7 +5,9 @@ from typing import Callable, List
 
 class Cli:
     def __init__(self, parameters: List[str], cwd: str, logger: Callable):
-        self.parameters = parameters
+
+        aux_list = list(map(str.split, parameters))
+        self.parameters = [elem for sublist in aux_list for elem in sublist]
         self.cwd = cwd
         self.logger = logger
 
@@ -19,7 +21,9 @@ class Cli:
         pipe = process.stdout
 
         for line in iter(pipe.readline, b''):
-            try: line = line.decode('utf-8').rstrip()
-            except Exception as e: line = f"DECODING EXCEPTION: {e}"
+            try:
+                line = line.decode('utf-8').rstrip()
+            except Exception as e:
+                line = f"DECODING EXCEPTION: {e}"
 
             self.logger(Level.INFO, f"[CLI]{line}")
