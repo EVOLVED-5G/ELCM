@@ -276,7 +276,8 @@ class ExperimentRun:
     def Digest(cls, id: str) -> Dict:
         return Serialize.Load(Serialize.Path('Execution', id))
 
-    def AppEviction(self, device_id):
+    @staticmethod
+    def AppEviction(device_id):
         commands = f'adb -s {device_id} shell pm list packages'
         pattern = r"(.*)(com.uma.(.*))"
         process = subprocess.Popen(commands.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
@@ -292,7 +293,8 @@ class ExperimentRun:
             except Exception as e:
                 Log.E(f"DECODING EXCEPTION: {e}")
 
-    def TapEviction(self):
+    @staticmethod
+    def TapEviction():
         if platform.system() == 'Linux':
             pass
         elif platform.system() == 'Windows':
