@@ -21,6 +21,7 @@ def nocache(view):
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '-1'
         return response
+
     return update_wrapper(no_cache, view)
 
 
