@@ -1,3 +1,7 @@
+import subprocess
+import re
+import platform
+
 from Executor import PreRunner, Executor, PostRunner, ExecutorBase, Verdict
 from Data import ExperimentDescriptor
 from typing import Dict, Optional, List
@@ -9,6 +13,7 @@ from Settings import Config
 from Interfaces import PortalApi
 from Composer import Composer, PlatformConfiguration
 from os.path import join, abspath
+from Helper import Cli
 
 
 @unique
@@ -147,6 +152,9 @@ class ExperimentRun:
         if current is not None:
             current.RequestStop()
         self.CoarseStatus = CoarseStatus.Cancelled
+        self.AppEviction(self.Params["DeviceId"])
+        self.TapEviction()
+        self.PostRunner.Start()  # Temporal fix for the release of the resources after the cancellation.
 
     def PreRun(self):
         self.CoarseStatus = CoarseStatus.PreRun
@@ -267,3 +275,28 @@ class ExperimentRun:
     @classmethod
     def Digest(cls, id: str) -> Dict:
         return Serialize.Load(Serialize.Path('Execution', id))
+
+    @staticmethod
+    def AppEviction(device_id):
+        commands = f'adb -s {device_id} shell pm list packages'
+        pattern = r"(.*)(com.uma.(.*))"
+        process = subprocess.Popen(commands.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+        pipe = process.stdout
+
+        for line in iter(pipe.readline, b''):
+            try:
+                result = re.search(pattern, line.decode('utf-8'))
+                if result:
+                    app_stop_command = f'adb -s {device_id} shell am force-stop {result.group(2)}'
+                    subprocess.Popen(app_stop_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='.')
+                    Log.I(f"Package {result.group(2)} stopped.")
+            except Exception as e:
+                Log.E(f"DECODING EXCEPTION: {e}")
+
+    @staticmethod
+    def TapEviction():
+        if platform.system() == 'Linux':
+            pass
+        elif platform.system() == 'Windows':
+            tap_stop_command = f'taskkill /IM "tap.exe" /F'
+            subprocess.run(tap_stop_command, shell=True)

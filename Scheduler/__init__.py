@@ -37,18 +37,21 @@ Status.Initialize()
 HeartBeat.Initialize()
 
 from Scheduler.execution import bp as ExecutionBp
-app.register_blueprint(ExecutionBp, url_prefix='/execution')
+app.register_blueprint(ExecutionBp, url_prefix='/execution', name='deprecatedExecutionApi')
+app.register_blueprint(ExecutionBp, url_prefix='/elcm/api/v1/execution')
 
 from Scheduler.dispatcher import bp as DispatcherBp
 app.register_blueprint(DispatcherBp, url_prefix='/api/v0', name='deprecatedDispatcherApi')
-app.register_blueprint(DispatcherBp, url_prefix='/experiment')
+app.register_blueprint(DispatcherBp, url_prefix='/elcm/api/v1/experiment')
 
 from Scheduler.facility import bp as FacilityBp
-app.register_blueprint(FacilityBp, url_prefix='/facility')
+app.register_blueprint(FacilityBp, url_prefix='/facility', name='deprecatedFacilityApi')
+app.register_blueprint(FacilityBp, url_prefix='/elcm/api/v1/facility')
 
 if config.EastWest.Enabled:
     from Scheduler.east_west import bp as EastwestBp
-    app.register_blueprint(EastwestBp, url_prefix='/distributed')
+    app.register_blueprint(EastwestBp, url_prefix='/distributed', name='deprecatedEastWestApi')
+    app.register_blueprint(EastwestBp, url_prefix='/elcm/api/v1/distributed')
 
 Log.I(f'Optional East/West interface is {Log.State(config.EastWest.Enabled)}')
 

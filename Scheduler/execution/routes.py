@@ -10,7 +10,7 @@ from os.path import join, isfile, abspath
 
 
 @bp.route('<int:executionId>/cancel')  # Deprecated
-@bp.route('<int:executionId>', methods=["DELETE"])
+# @bp.route('<int:executionId>', methods=["DELETE"])
 def cancel(executionId: int):
     ExecutionQueue.Cancel(executionId)
     flash(f'Cancelled execution {executionId}', 'info')
@@ -138,7 +138,14 @@ def kpis(executionId: int):
         for testcase in descriptor.TestCases:
             kpis.update(Facility.GetTestCaseKPIs(testcase))
 
-        return jsonify({"KPIs": sorted(kpis)})
+        res = []
+        for kpi in sorted(kpis):
+            measurement, name, kind, description = kpi
+            res.append({
+                'Measurement': measurement, 'KPI': name, 'Type': kind, 'Description': description
+            })
+
+        return jsonify({"KPIs": res})
     else:
         return f"Execution {executionId} not found", 404
 
